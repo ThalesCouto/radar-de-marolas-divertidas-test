@@ -22,6 +22,80 @@ body {
     text-align: center;
 }
 
+/* NOVO: Container para Alinhar Controles e Maré */
+.controls-and-tide-container {
+    display: flex;
+    justify-content: space-between; /* Espaço entre controles e maré */
+    align-items: flex-start;
+    width: 100%;
+}
+
+.controls-block {
+    flex-grow: 1; /* Ocupa a maior parte do espaço */
+    max-width: 80%;
+}
+
+.tide-block {
+    width: 180px; /* Largura fixa para o bloco da maré */
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+.tide-block h3 {
+    font-size: 1.2em;
+    margin: 0 0 10px 0;
+    color: #48c9b0; /* Cor do Ideal */
+}
+
+.tide-status {
+    padding: 10px;
+    border-radius: 8px;
+    min-height: 50px;
+}
+
+#tide-state {
+    font-weight: 600;
+    font-size: 1.1em;
+    margin: 0;
+}
+
+#tide-height {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin: 5px 0 0 0;
+}
+
+/* Cores dinâmicas para o estado da maré */
+.state-high {
+    color: #00bfff; /* Azul claro */
+}
+.state-low {
+    color: #ffba08; /* Amarelo (Seca) */
+}
+.state-rising, .state-falling {
+    color: #ffffff; /* Branco/Padrão */
+}
+
+/* Responsividade para o cabeçalho */
+@media (max-width: 768px) {
+    .controls-and-tide-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .controls-block {
+        max-width: 100%;
+        margin-bottom: 20px;
+    }
+    .tide-block {
+        width: 100%;
+        max-width: 300px;
+        margin-left: 0;
+    }
+}
+
 h1 {
     font-size: 2em;
     margin-bottom: 20px;
