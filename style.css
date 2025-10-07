@@ -160,7 +160,7 @@ h2 {
 .setas-container {
     display: flex;
     justify-content: center;
-    gap: 30px;
+    gap: 25px;
     margin-bottom: 20px;
 }
 
@@ -173,7 +173,7 @@ h2 {
 .seta-referencia-container {
     position: relative; 
     width: 60px; 
-    height: 100px; 
+    height: 80px;
     margin: 40px auto 10px; /* Aumenta a margem superior para afastar do texto superior */
 }
 
@@ -195,8 +195,8 @@ h2 {
     font-size: 3em;
     display: block;
     position: absolute;
-    top: 50%;
-    left: -5%;
+    top: 20%;
+    left: 5%;
     /* CORREÇÃO AQUI: Alinhamento perfeito do ícone */
     transform: translate(-50%, -50%); 
     line-height: 1;
