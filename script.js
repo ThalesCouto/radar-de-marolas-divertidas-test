@@ -3,8 +3,8 @@ const API_URL = "https://api.open-meteo.com/v1/forecast";
 // Estrutura global para dados e configurações
 const globalState = {
     hourlyTimeLabels: [], 
-    itacoatiara: { name: "Praia de Itacoatiara", lat: -22.97, lon: -43.04, desiredDeg: 10, data: null, chartInstance: null },
-    itaipu: { name: "Canal de Itaipu", lat: -22.95, lon: -43.06, desiredDeg: 56, data: null, chartInstance: null }
+    itacoatiara: { name: "Praia de Itacoatiara", lat: -22.97, lon: -43.04, desiredDeg: 180+10, data: null, chartInstance: null },
+    itaipu: { name: "Canal de Itaipu", lat: -22.95, lon: -43.06, desiredDeg: 180+56, data: null, chartInstance: null }
 };
 
 const dateInput = document.getElementById('date-input');
