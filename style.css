@@ -164,25 +164,22 @@ h2 {
     margin-bottom: 20px;
 }
 
-/* NOVO: Ajuste para alinhar o item completo com o texto abaixo */
 .seta-item {
     text-align: center;
     position: relative; 
-    /* Remove padding lateral para as setas ficarem mais próximas */
 }
 
 /* Container que envolve as setas e o marcador N (a "bússola") */
 .seta-referencia-container {
     position: relative; 
-    width: 60px;   /* Reduzido para aproximar as setas */
-    height: 60px;  /* Altura reduzida para centralizar N mais acima */
-    margin: 0 auto 5px; /* Ajusta margem inferior para aproximar do label */
+    width: 60px; 
+    height: 60px; 
+    margin: 20px auto 10px; /* Aumenta a margem superior para afastar do texto superior */
 }
 
-/* NOVO: Ajuste do N para ficar no topo e centralizado */
 #north-marker {
     position: absolute;
-    top: -15px; /* Sobe o 'N' para acima do centro visual da seta */
+    top: -30px; /* Movido para CIMA do container */
     left: 50%;
     transform: translateX(-50%); 
     font-weight: 700;
@@ -190,7 +187,7 @@ h2 {
     color: #f00; /* Vermelho para o Norte */
     z-index: 10;
     pointer-events: none;
-    width: fit-content; /* Para não ocupar espaço extra */
+    width: fit-content;
 }
 
 /* Seta (ícone) */
@@ -200,9 +197,10 @@ h2 {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Centraliza o ícone perfeitamente */
+    /* CORREÇÃO AQUI: Alinhamento perfeito do ícone */
+    transform: translate(-50%, -50%); 
     line-height: 1;
-    transition: transform 0.5s ease-out; /* Transição suave na rotação */
+    transition: transform 0.5s ease-out; 
 }
 
 .seta-desejada {
@@ -213,8 +211,10 @@ h2 {
 .seta-label {
     font-size: 0.9em;
     opacity: 0.8;
-    margin-top: 0px; /* Reduz margem para aproximar do container da seta */
+    margin-top: 5px; /* Volta para um espaçamento padrão */
+    /* Removemos o ajuste negativo que causou a sobreposição */
 }
+
 
 /* Gráfico */
 .chart-container {
