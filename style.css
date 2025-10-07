@@ -195,7 +195,7 @@ h2 {
     font-size: 3em;
     display: block;
     position: absolute;
-    top: -5%;
+    top: -10%;
     left: -5%;
     /* CORREÇÃO AQUI: Alinhamento perfeito do ícone */
     transform: translate(-50%, -50%); 
