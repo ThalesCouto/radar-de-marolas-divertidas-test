@@ -12,16 +12,31 @@
 
 <div class="header-container">
     <h1>Previsão do Vento para o Surf e Kite</h1>
-    <div class="date-selector">
-        <label for="date-input">Selecione o Dia:</label>
-        <input type="date" id="date-input">
-    </div>
     
-    <div class="time-slider-container">
-        <label for="time-slider">Hora Selecionada: <span id="current-time-display">--:--</span></label>
-        <input type="range" id="time-slider" min="0" max="0" value="0" step="1"> 
+    <div class="controls-and-tide-container">
+        
+        <div class="controls-block">
+            <div class="date-selector">
+                <label for="date-input">Selecione o Dia:</label>
+                <input type="date" id="date-input">
+            </div>
+            
+            <div class="time-slider-container">
+                <label for="time-slider">Hora Selecionada: <span id="current-time-display">--:--</span></label>
+                <input type="range" id="time-slider" min="0" max="0" value="0" step="1"> 
+            </div>
+        </div>
+        
+        <div class="tide-block">
+            <h3>MARÉ</h3>
+            <div class="tide-status" id="tide-status">
+                <p id="tide-state" class="state-low">Buscando...</p>
+                <p id="tide-height">-- m</p>
+            </div>
+        </div>
+        
     </div>
-</div>
+    </div>
 
 <div class="main-content">
     
