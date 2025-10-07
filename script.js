@@ -4,14 +4,20 @@ const API_URL = "https://api.open-meteo.com/v1/forecast";
 const globalState = {
     hourlyTimeLabels: [], // Ex: ["00:00", "01:00", ...]
     itacoatiara: {
-        data: null, // Dados brutos da API
-        chartInstance: null,
+        name: "Praia de Itacoatiara",
+        lat: -22.97, 
+        lon: -43.04,
         desiredDeg: 10, 
+        data: null, // Dados brutos da API
+        chartInstance: null
     },
     itaipu: {
-        data: null,
-        chartInstance: null,
+        name: "Canal de Itaipu",
+        lat: -22.95, 
+        lon: -43.06,
         desiredDeg: 56, 
+        data: null,
+        chartInstance: null
     }
 };
 
@@ -23,7 +29,6 @@ const currentTimeDisplay = document.getElementById('current-time-display');
  * Define o dia atual e o limite de 7 dias no seletor de data.
  */
 function initializeDateInput() {
-    // ... (função initializeDateInput permanece a mesma) ...
     const today = new Date();
     const maxDate = new Date();
     maxDate.setDate(today.getDate() + 6);
@@ -70,7 +75,7 @@ function configureTimeSlider(hourlyTimes) {
     const maxIndex = globalState.hourlyTimeLabels.length - 1;
     timeSlider.max = maxIndex;
     
-    // **CORREÇÃO PRINCIPAL: HABILITAR O SLIDER**
+    // CORREÇÃO: HABILITA O SLIDER APÓS CARREGAR OS DADOS
     timeSlider.removeAttribute('disabled');
     
     // Define o valor inicial (hora mais próxima/primeira hora)
@@ -153,7 +158,7 @@ function getColorForScore(score) {
  */
 function updateCurrentDisplay(beachKey, index) {
     const beach = globalState[beachKey];
-    const hourlyData = beach.data;
+    const hourlyData = beach.data; // Dados são acessados via .data
     const statusElement = document.getElementById(`${beachKey}-status`);
     const subtitleElement = document.getElementById(`${beachKey}-current-subtitle`);
 
@@ -210,7 +215,10 @@ function updateCurrentDisplay(beachKey, index) {
         </div>
     `;
     
-    statusElement.innerHTML = htmlContent;
+    // Garante que o conteúdo seja injetado no lugar certo
+    if (statusElement) {
+         statusElement.innerHTML = htmlContent;
+    }
 
     if (beach.chartInstance) {
         beach.chartInstance.update(); 
@@ -358,7 +366,7 @@ async function fetchAllData() {
     const selectedDate = dateInput.value;
     if (!selectedDate) return;
 
-    // **CORREÇÃO: Desativa o slider e reseta a lista de horas antes de buscar novos dados**
+    // DESATIVA o slider e reseta a lista de horas antes de buscar novos dados
     timeSlider.setAttribute('disabled', 'true');
     globalState.hourlyTimeLabels = [];
     currentTimeDisplay.textContent = '---';
@@ -368,12 +376,15 @@ async function fetchAllData() {
 
     const beachKeys = ['itacoatiara', 'itaipu'];
 
+    // Define o status de carregamento antes da busca
     beachKeys.forEach(key => {
         document.getElementById(`${key}-status`).innerHTML = `<p class="loading">Buscando previsão para ${startDate.split('-').reverse().join('/')}...</p>`;
     });
 
     for (const key of beachKeys) {
         const beach = globalState[key];
+        const statusElement = document.getElementById(`${key}-status`); // Pega o elemento correto para erro
+
         try {
             const params = new URLSearchParams({
                 latitude: beach.lat,
@@ -400,7 +411,8 @@ async function fetchAllData() {
 
         } catch (error) {
             console.error(`Erro ao buscar dados para ${key}:`, error);
-            document.getElementById(`${key}-status`).innerHTML = `<p class="error">Erro ao carregar os dados do vento para ${key}.</p>`;
+            // **CORREÇÃO: Mostra o erro no elemento correto**
+            statusElement.innerHTML = `<p class="error">Erro ao carregar os dados do vento para ${beach.name}.</p>`;
         }
     }
 }
