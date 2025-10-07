@@ -173,7 +173,7 @@ h2 {
 .seta-referencia-container {
     position: relative; 
     width: 60px; 
-    height: 60px; 
+    height: 80px; 
     margin: 40px auto 10px; /* Aumenta a margem superior para afastar do texto superior */
 }
 
