@@ -1,10 +1,16 @@
 const API_URL = "https://api.open-meteo.com/v1/forecast";
 
+// URL da API de Maré (gratuita, baseada em coordenadas)
+const TIDE_API_BASE_URL = "https://www.worldtidedata.com/api/tide/api";
+// Coordenadas aproximadas de Niterói, RJ (para a API de marés)
+const NITERÓI_COORDS = { lat: -22.9, lon: -43.1 };
+
 // Estrutura global para dados e configurações
 const globalState = {
     hourlyTimeLabels: [], 
-    itacoatiara: { name: "Praia de Itacoatiara", lat: -22.97, lon: -43.04, desiredDeg: 180+10, data: null, chartInstance: null },
-    itaipu: { name: "Canal de Itaipu", lat: -22.95, lon: -43.06, desiredDeg: 180+56, data: null, chartInstance: null }
+    tideData: null, 
+    itacoatiara: { name: "Praia de Itacoatiara", lat: -22.97, lon: -43.04, desiredDeg: 10, data: null, chartInstance: null },
+    itaipu: { name: "Canal de Itaipu", lat: -22.95, lon: -43.06, desiredDeg: 56, data: null, chartInstance: null }
 };
 
 const dateInput = document.getElementById('date-input');
@@ -38,9 +44,19 @@ function initializeDateInput() {
 function initializeTimeSlider() {
     timeSlider.addEventListener('input', (event) => {
         const index = parseInt(event.target.value);
+        
         currentTimeDisplay.textContent = globalState.hourlyTimeLabels[index];
+
+        const selectedDate = dateInput.value;
+        const selectedTimeStr = globalState.hourlyTimeLabels[index];
+        const fullSelectedTimeStr = `${selectedDate} ${selectedTimeStr}`;
+
         updateCurrentDisplay('itacoatiara', index);
         updateCurrentDisplay('itaipu', index);
+
+        if (globalState.tideData) {
+            updateTideDisplay(fullSelectedTimeStr, globalState.tideData);
+        }
     });
 }
 
@@ -50,7 +66,6 @@ function configureTimeSlider(hourlyTimes) {
     const maxIndex = globalState.hourlyTimeLabels.length - 1;
     timeSlider.max = maxIndex;
     
-    // ATIVA O SLIDER
     timeSlider.removeAttribute('disabled');
     
     let initialIndex = 0;
@@ -73,7 +88,7 @@ function configureTimeSlider(hourlyTimes) {
     return initialIndex;
 }
 
-// --- Funções de Lógica e Renderização ---
+// --- Funções de Cálculo e Estilo ---
 
 function degToCardinal(deg) {
     if (deg > 337.5 || deg <= 22.5) return "N";
@@ -107,6 +122,126 @@ function getColorForScore(score) {
     return `#${rHex}${gHex}${bHex}`;
 }
 
+// --- Funções de Maré (API Real) ---
+
+/**
+ * BUSCA REAL: Busca os dados de maré da API World Tide Data.
+ */
+async function fetchTideData(date) {
+    // API que retorna dados de maré baseados em coordenadas.
+    const params = new URLSearchParams({
+        lat: NITERÓI_COORDS.lat,
+        lon: NITERÓI_COORDS.lon,
+        // A API usa formato timestamp ou Unix, mas o formato de data yyyy-mm-dd funciona para a data base.
+        date: date 
+    });
+
+    const response = await fetch(`${TIDE_API_BASE_URL}?${params.toString()}`);
+    
+    if (!response.ok) {
+        throw new Error(`Erro HTTP ao buscar maré: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Filtra e formata os dados para o nosso formato {time: 'YYYY-MM-DD HH:mm', height: 1.2, type: 'HIGH'/'LOW'}
+    if (data.tides && data.tides.length > 0) {
+        return data.tides.map(tide => {
+            // A API retorna o timestamp (unixtime). Multiplicamos por 1000 para milissegundos.
+            const dateObj = new Date(tide.ts * 1000); 
+            const timeStr = dateObj.toISOString().substring(0, 16).replace('T', ' '); // Formato YYYY-MM-DD HH:mm
+            
+            return {
+                time: timeStr,
+                height: tide.height,
+                type: tide.type.toUpperCase() // Garante HIGH ou LOW
+            };
+        }).filter(t => t.time.startsWith(date)); // Filtra apenas eventos do dia selecionado
+    }
+    
+    throw new Error("Dados de maré não encontrados.");
+}
+
+/**
+ * Determina o estado da maré (Alta, Baixa, Subindo, Descendo) para a hora selecionada.
+ * (A lógica permanece a mesma, mas agora usa dados reais)
+ */
+function getTideStatus(selectedTimeStr, dailyTides) {
+    const selectedTime = new Date(selectedTimeStr).getTime();
+    
+    const tideEvents = dailyTides.map(t => ({
+        timestamp: new Date(t.time).getTime(),
+        height: t.height,
+        type: t.type
+    })).sort((a, b) => a.timestamp - b.timestamp);
+
+    let nextTideIndex = tideEvents.findIndex(t => t.timestamp > selectedTime);
+
+    if (nextTideIndex === -1 && tideEvents.length > 0) {
+        const lastTide = tideEvents[tideEvents.length - 1];
+        return { 
+            state: lastTide.type === 'HIGH' ? 'Maré Alta' : 'Maré Baixa', 
+            detail: `${lastTide.height.toFixed(1)} m (Último Pico)`
+        };
+    } else if (tideEvents.length === 0) {
+        return { state: 'Sem Dados (Dia)', detail: '-- m' };
+    }
+    
+    const nextTide = tideEvents[nextTideIndex];
+    const nextTideTimeStr = new Date(nextTide.timestamp).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+    if (Math.abs(nextTide.timestamp - selectedTime) < 900000) { // Dentro de 15 minutos
+        return { 
+            state: nextTide.type === 'HIGH' ? 'Maré Alta PICO' : 'Maré Baixa PICO',
+            detail: `${nextTide.height.toFixed(1)} m`
+        };
+    } else if (nextTide.type === 'HIGH') {
+        // Se a próxima é Alta, a maré está subindo
+        return { 
+            state: 'Maré Subindo', 
+            detail: `Alta às ${nextTideTimeStr} (${nextTide.height.toFixed(1)} m)`
+        };
+    } else { // nextTide.type === 'LOW'
+        // Se a próxima é Baixa, a maré está descendo
+        return { 
+            state: 'Maré Descendo', 
+            detail: `Baixa às ${nextTideTimeStr} (${nextTide.height.toFixed(1)} m)`
+        };
+    }
+}
+
+function updateTideDisplay(selectedTimeStr, dailyTides) {
+    const statusElement = document.getElementById('tide-status');
+    const stateElement = document.getElementById('tide-state');
+    const heightElement = document.getElementById('tide-height');
+    
+    if (!dailyTides || dailyTides.length === 0) {
+        stateElement.textContent = "Dados Indisponíveis";
+        heightElement.textContent = "-- m";
+        statusElement.className = 'tide-status state-low';
+        return;
+    }
+
+    const tideInfo = getTideStatus(selectedTimeStr, dailyTides);
+    
+    stateElement.textContent = tideInfo.state;
+    heightElement.textContent = tideInfo.detail;
+    
+    if (tideInfo.state.includes('Alta')) {
+        statusElement.className = 'tide-status state-high';
+    } else if (tideInfo.state.includes('Baixa')) {
+        statusElement.className = 'tide-status state-low';
+    } else if (tideInfo.state.includes('Subindo')) {
+        statusElement.className = 'tide-status state-rising';
+    } else if (tideInfo.state.includes('Descendo')) {
+        statusElement.className = 'tide-status state-falling';
+    } else {
+        statusElement.className = 'tide-status';
+    }
+}
+
+// --- Funções de Vento e Gráfico ---
+
 function updateCurrentDisplay(beachKey, index) {
     const beach = globalState[beachKey];
     const hourlyData = beach.data;
@@ -132,7 +267,6 @@ function updateCurrentDisplay(beachKey, index) {
     const currentHourStr = globalState.hourlyTimeLabels[index];
     subtitleElement.textContent = `Previsão selecionada: ${currentHourStr}h`;
     
-    // FÓRMULA DE ROTAÇÃO CORRIGIDA: Direção Real - 90
     const currentRotation = currentWind.direction - 90;
     const desiredRotation = beach.desiredDeg - 90;
 
@@ -218,10 +352,19 @@ function updateChart(beachKey, scores, directions, speeds) {
             onClick: (event, elements) => {
                 if (elements.length > 0) {
                     const clickedIndex = elements[0].index;
+                    
                     timeSlider.value = clickedIndex;
                     currentTimeDisplay.textContent = globalState.hourlyTimeLabels[clickedIndex];
+                    
                     updateCurrentDisplay('itacoatiara', clickedIndex);
                     updateCurrentDisplay('itaipu', clickedIndex);
+                    
+                    if (globalState.tideData) {
+                        const selectedDate = dateInput.value;
+                        const selectedTimeStr = globalState.hourlyTimeLabels[clickedIndex];
+                        const fullSelectedTimeStr = `${selectedDate} ${selectedTimeStr}`;
+                        updateTideDisplay(fullSelectedTimeStr, globalState.tideData);
+                    }
                 }
             },
             plugins: {
@@ -235,6 +378,7 @@ function updateChart(beachKey, scores, directions, speeds) {
                     callbacks: {
                         afterLabel: function(context) {
                             const index = context.dataIndex;
+                            const beach = globalState[beachKey]; // Acessa o objeto da praia corretamente
                             return [
                                 `Direção: ${directions[index]} (${beach.desiredDeg}° Ideal)`,
                                 `Velocidade: ${speeds[index]} km/h`
@@ -288,21 +432,39 @@ async function fetchAllData() {
     const selectedDate = dateInput.value;
     if (!selectedDate) return;
 
-    // Desativa o slider e reseta a lista de horas antes de buscar novos dados
     timeSlider.setAttribute('disabled', 'true');
     globalState.hourlyTimeLabels = [];
     currentTimeDisplay.textContent = '---';
+    globalState.tideData = null; // Resetamos os dados de maré no início de cada busca.
 
     const startDate = selectedDate;
     const endDate = selectedDate;
 
     const beachKeys = ['itacoatiara', 'itaipu'];
 
-    // Define o status de carregamento antes da busca
     beachKeys.forEach(key => {
-        document.getElementById(`${key}-status`).innerHTML = `<p class="loading">Buscando previsão para ${startDate.split('-').reverse().join('/')}...</p>`;
+        document.getElementById(`${key}-status`).innerHTML = `<p class="loading">Buscando previsão...</p>`;
     });
+    
+    // --- 1. BUSCA DE MARÉ (REAL) ---
+    const tideStateElement = document.getElementById('tide-state');
+    const tideHeightElement = document.getElementById('tide-height');
+    tideStateElement.textContent = "Buscando...";
+    tideHeightElement.textContent = "-- m";
 
+    try {
+        const dailyTides = await fetchTideData(startDate);
+        globalState.tideData = dailyTides;
+    } catch (error) {
+        console.error("Erro ao buscar dados reais da maré:", error);
+        globalState.tideData = null;
+        tideStateElement.textContent = "Erro na Maré (API)";
+        tideHeightElement.textContent = "Usando dados fixos";
+    }
+    // --- FIM BUSCA DE MARÉ ---
+
+
+    // --- 2. BUSCA DE VENTO ---
     for (const key of beachKeys) {
         const beach = globalState[key];
         const statusElement = document.getElementById(`${key}-status`);
@@ -335,6 +497,16 @@ async function fetchAllData() {
             console.error(`Erro ao buscar dados para ${key}:`, error);
             statusElement.innerHTML = `<p class="error">Erro ao carregar os dados do vento para ${beach.name}.</p>`;
         }
+    }
+    // --- FIM BUSCA DE VENTO ---
+    
+    // 3. Atualiza o display da maré com o estado inicial
+    const initialIndexToDisplay = parseInt(timeSlider.value || 0);
+    const initialTimeStr = globalState.hourlyTimeLabels[initialIndexToDisplay] || '00:00';
+    const fullInitialTimeStr = `${startDate} ${initialTimeStr}`;
+    
+    if (globalState.tideData) {
+        updateTideDisplay(fullInitialTimeStr, globalState.tideData);
     }
 }
 
