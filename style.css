@@ -1,6 +1,6 @@
 body {
     font-family: 'Poppins', sans-serif;
-    background-color: #0077b6; /* Azul do Mar */
+    background-color: #0077b6; /* Azul do Mar (Fundo) */
     color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -164,29 +164,33 @@ h2 {
     margin-bottom: 20px;
 }
 
+/* NOVO: Ajuste para alinhar o item completo com o texto abaixo */
 .seta-item {
     text-align: center;
     position: relative; 
+    /* Remove padding lateral para as setas ficarem mais próximas */
 }
 
 /* Container que envolve as setas e o marcador N (a "bússola") */
 .seta-referencia-container {
     position: relative; 
-    width: 80px; 
-    height: 80px; 
-    margin: 0 auto 10px;
+    width: 60px;   /* Reduzido para aproximar as setas */
+    height: 60px;  /* Altura reduzida para centralizar N mais acima */
+    margin: 0 auto 5px; /* Ajusta margem inferior para aproximar do label */
 }
 
+/* NOVO: Ajuste do N para ficar no topo e centralizado */
 #north-marker {
     position: absolute;
-    top: 0px; 
+    top: -15px; /* Sobe o 'N' para acima do centro visual da seta */
     left: 50%;
     transform: translateX(-50%); 
     font-weight: 700;
     font-size: 1.2em;
-    color: #f00; 
+    color: #f00; /* Vermelho para o Norte */
     z-index: 10;
     pointer-events: none;
+    width: fit-content; /* Para não ocupar espaço extra */
 }
 
 /* Seta (ícone) */
@@ -196,13 +200,20 @@ h2 {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Centraliza o ícone */
+    transform: translate(-50%, -50%); /* Centraliza o ícone perfeitamente */
     line-height: 1;
     transition: transform 0.5s ease-out; /* Transição suave na rotação */
 }
 
 .seta-desejada {
     color: #48c9b0; /* Verde/Ciano (Vento Ideal) */
+}
+
+/* Texto abaixo das setas */
+.seta-label {
+    font-size: 0.9em;
+    opacity: 0.8;
+    margin-top: 0px; /* Reduz margem para aproximar do container da seta */
 }
 
 /* Gráfico */
