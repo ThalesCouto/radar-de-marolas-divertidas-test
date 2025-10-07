@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Vento - Itacoatiara e Itaipu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="header-container">
+    <h1>Previsão do Vento para o Surf e Kite</h1>
+    <div class="date-selector">
+        <label for="date-input">Selecione o Dia:</label>
+        <input type="date" id="date-input">
+    </div>
+    
+    <div class="time-slider-container">
+        <label for="time-slider">Hora Selecionada: <span id="current-time-display">--:--</span></label>
+        <input type="range" id="time-slider" min="0" max="0" value="0" step="1" disabled>
+    </div>
+    </div>
+
+<div class="main-content">
+    
+    <div class="beach-card" id="itacoatiara-card">
+        <h2>Praia de Itacoatiara</h2>
+        <div class="card-subtitle" id="itacoatiara-current-subtitle"></div>
+        
+        <div class="loading" id="itacoatiara-status">Buscando dados...</div>
+        
+        <div class="chart-container">
+            <canvas id="itacoatiara-chart"></canvas>
+        </div>
+    </div>
+
+    <div class="beach-card" id="itaipu-card">
+        <h2>Canal de Itaipu</h2>
+        <div class="card-subtitle" id="itaipu-current-subtitle"></div>
+        
+        <div class="loading" id="itaipu-status">Buscando dados...</div>
+        
+        <div class="chart-container">
+            <canvas id="itaipu-chart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
